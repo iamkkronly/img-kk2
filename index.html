@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🤖 Multi AI Chat</title>
+  <style>
+    body { font-family: sans-serif; background: #f9fafb; color: #111; display: flex; flex-direction: column; align-items: center; padding: 2em; }
+    h1 { color: #9333ea; }
+    input, button { padding: .6em 1em; border-radius: .5em; border: 1px solid #d1d5db; font-size: 1em; }
+    input { width: 80%; max-width: 400px; margin-bottom: 1em; }
+    button { background: #9333ea; color: #fff; border: none; cursor: pointer; }
+    button:hover { background: #7e22ce; }
+    #output img { max-width: 100%; border: 1px solid #d1d5db; border-radius: .5em; margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h1>🤖 Multi AI Chat</h1>
+  <input type="text" id="prompt" placeholder="Describe image..." />
+  <button id="generate">Generate</button>
+  <div id="output"></div>
+
+  <script>
+    const apiKeys = [
+      "AIzaSyBtXJtmjjMC8C9Hrnx4ByQGnWTLs3q1pzM",
+      "AIzaSyDrXsnpUStwYmks5rDSlz7qTqfxyGUZBp4",
+      "AIzaSyBFbFcH9lyHyGVl2iCkNp2yupggaqOZCGo",
+      "AIzaSyBFFHNynQXJCUUHpIN5tzchmvoEy1Z-ILk",
+      "AIzaSyBQbpqJFN3ZUnUU4xTAui8mSZluzjrywlo"
+    ];
+
+    async function generateImage(prompt) {
+      for (let key of apiKeys) {
+        try {
+          const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.7 }
+            })
+          });
+          const d = await r.json();
+          if (d.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data) {
+            return `<img src="data:image/png;base64,${d.candidates[0].content.parts[0].inlineData.data}">`;
+          }
+        } catch {}
+      }
+      return '⚠️ All API keys failed. Try again later.';
+    }
+
+    document.getElementById('generate').onclick = async () => {
+      const prompt = promptInput.value.trim();
+      if (!prompt) return alert('Enter a prompt!');
+      output.innerHTML = '⏳ Generating...';
+      output.innerHTML = await generateImage(prompt);
+    };
+
+    const promptInput = document.getElementById('prompt');
+    const output = document.getElementById('output');
+  </script>
+</body>
+</html>
